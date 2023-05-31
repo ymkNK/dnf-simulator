@@ -23,6 +23,8 @@ var (
 		11: 400,
 		12: 300,
 	}
+
+	failedNumMap = map[int]int{}
 )
 
 const highLevelSuccessNum = 200
@@ -60,7 +62,7 @@ func main() {
 			continue
 		}
 
-		currentLevel = startLevel
+		currentLevel = int(math.Max(float64(startLevel), float64(newLevel)))
 		failCnt++
 		currentContinuousFailCnt++
 	}
@@ -84,7 +86,7 @@ func UpgradeOnce(currentLevel int, opts ...Option) (int, bool) {
 	successNum = int(math.Max(float64(successNum), float64(highLevelSuccessNum)))
 
 	for _, opt := range opts {
-		successNum += opt()
+		successNum += opt(currentLevel)
 	}
 
 	// get one num in [0,1000)
@@ -95,7 +97,23 @@ func UpgradeOnce(currentLevel int, opts ...Option) (int, bool) {
 		return currentLevel + 1, true
 	}
 
-	return currentLevel, false
+	// upgrade failed
+	return failedNumMap[currentLevel], false
 }
 
-type Option func() int
+type Option func(currentLevel int) int
+
+func WithPuLeiPet() Option {
+	return func(currentLevel int) int {
+		successNum := successNumMap[currentLevel+1]
+		successNum = int(math.Max(float64(successNum), float64(highLevelSuccessNum)))
+
+		return successNum * 5 / 100
+	}
+}
+
+func WithBuff() Option {
+	return func(_ int) int {
+		return 10
+	}
+}
