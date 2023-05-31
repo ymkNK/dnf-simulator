@@ -24,7 +24,12 @@ var (
 		12: 300,
 	}
 
-	failedNumMap = map[int]int{}
+	failedNumMap = map[int]int{
+		4: 3,
+		5: 4,
+		6: 5,
+		7: 6,
+	}
 )
 
 const highLevelSuccessNum = 200
@@ -36,9 +41,13 @@ func main() {
 	failCnt := 0                  // 失败次数
 	maxContinuousFailCnt := 0     // 最大连续失败数
 	startLevel := 12              // 胚子等级
-	targetLevel := 18             // 目标等级
+	targetLevel := 15             // 目标等级
 	currentLevel := startLevel    // 起始等级
 	currentContinuousFailCnt := 0 // 当前连续失败数
+	opts := []Option{             // 额外加成
+		WithPuLeiPet(), // 普雷
+		WithBuff(),     // 工会buff
+	}
 
 	for {
 		if currentLevel == targetLevel {
@@ -51,7 +60,7 @@ func main() {
 
 		upgradeCnt++
 
-		newLevel, success := UpgradeOnce(currentLevel)
+		newLevel, success := UpgradeOnce(currentLevel, opts...)
 		if success {
 			currentLevel = newLevel
 			succCnt++
