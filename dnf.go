@@ -7,6 +7,26 @@ import (
 	"time"
 )
 
+var (
+	r             = rand.New(rand.NewSource(time.Now().Unix()))
+	successNumMap = map[int]int{
+		1:  1000,
+		2:  1000,
+		3:  1000,
+		4:  1000,
+		5:  800,
+		6:  700,
+		7:  600,
+		8:  700,
+		9:  600,
+		10: 500,
+		11: 400,
+		12: 300,
+	}
+)
+
+const highLevelSuccessNum = 200
+
 func main() {
 	itemCnt := 0                  // 胚子数量
 	upgradeCnt := 0               // 增幅次数
@@ -29,8 +49,9 @@ func main() {
 
 		upgradeCnt++
 
-		if UpgradeOnce() {
-			currentLevel++
+		newLevel, success := UpgradeOnce(currentLevel)
+		if success {
+			currentLevel = newLevel
 			succCnt++
 			maxContinuousFailCnt = int(math.Max(float64(currentContinuousFailCnt), float64(maxContinuousFailCnt)))
 
@@ -58,17 +79,23 @@ func main() {
 		float32(succCnt)/float32(upgradeCnt)*100)
 }
 
-var r = rand.New(rand.NewSource(time.Now().Unix()))
+func UpgradeOnce(currentLevel int, opts ...Option) (int, bool) {
+	successNum := successNumMap[currentLevel+1]
+	successNum = int(math.Max(float64(successNum), float64(highLevelSuccessNum)))
 
-func UpgradeOnce() bool {
-
-	// get one num in [0,100)
-	num := r.Intn(100)
-
-	// if num < 22, upgrade success
-	if num < 22 {
-		return true
+	for _, opt := range opts {
+		successNum += opt()
 	}
 
-	return false
+	// get one num in [0,1000)
+	num := r.Intn(1000)
+
+	// if num < successNum, upgrade success
+	if num < successNum {
+		return currentLevel + 1, true
+	}
+
+	return currentLevel, false
 }
+
+type Option func() int
